@@ -20,26 +20,25 @@ app.get('/', async (req, res) => {
 //signup feature implemented
 app.post('/signup', async (req, res) => { 
     const { name, email, password } = req.body;
-    if (!name) res.send("Please enter your name");
-    if (!email) res.send("Please enter your email");
-    if (!password) res.send("Please enter your password");
-    
-    const user = await User.findOne({ email });
-    if (user) {
-        res.send("User already exists");
-    } else {
-        try {
-            const newUser = await User.create({
-                name,
-                email,
-                password
-            });
-            res.send(newUser);
-        } catch (error) {
-            throw new Error("Failed to  create user");
+    if (!name || !email || !password) res.send("Please enter all fields");
+    else {
+        const user = await User.findOne({ email });
+        if (user) {
+            res.send("User already exists");
+        } else {
+            try {
+                const newUser = await User.create({
+                    name,
+                    email,
+                    password
+                });
+                res.send(newUser);
+            } catch (err) {
+                res.send("Failed to create user");
+        
+            }
         
         }
-        
     }
 })
 //login feature
