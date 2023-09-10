@@ -20,24 +20,23 @@ app.get('/', async (req, res) => {
 //signup feature implemented
 app.post('/signup', async (req, res) => { 
     const { name, email, password } = req.body;
-    try {
-        const newUser = await User.create({
-            name,
-            email,
-            password
-        });
-        res.json({
-            _id: newUser._id,
-            name: newUser.name,
-            email: newUser.email,
-                
-        });
-    } catch (error) {
-         throw new Error("Failed to  create user");
+    const user = await User.findOne({ email });
+    if (user) {
+        res.send("User already exists");
+    } else {
+        try {
+            const newUser = await User.create({
+                name,
+                email,
+                password
+            });
+            res.send(newUser);
+        } catch (error) {
+            throw new Error("Failed to  create user");
+        
+        }
         
     }
-        
-    
 })
 //login feature
 app.post('/login', async (req, res) => { 
@@ -45,12 +44,7 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
     try {
         if (user && user.password === password) {
-         res.json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-        
-        });
+         res.send(user);
         } else {
             res.json("Enter valid credentials");
         }
