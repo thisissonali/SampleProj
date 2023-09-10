@@ -20,10 +20,6 @@ app.get('/', async (req, res) => {
 //signup feature implemented
 app.post('/signup', async (req, res) => { 
     const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-        res.status(400);
-        throw new Error("Please Enter all the fields");
-    }
     try {
         const newUser = await User.create({
             name,
@@ -42,6 +38,27 @@ app.post('/signup', async (req, res) => {
     }
         
     
+})
+//login feature
+app.post('/login', async (req, res) => { 
+    const { email, password } = req.body; 
+    const user = await User.findOne({ email });
+    try {
+        if (user && user.password === password) {
+         res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+        
+        });
+        } else {
+            res.json("Enter valid credentials");
+        }
+    } catch (error) {
+        res.status(401);
+        res.send(error);
+    }
+
 })
 app.listen(3000, console.log("listening"));
     
