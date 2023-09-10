@@ -20,6 +20,10 @@ app.get('/', async (req, res) => {
 //signup feature implemented
 app.post('/signup', async (req, res) => { 
     const { name, email, password } = req.body;
+    if (!name) res.send("Please enter your name");
+    if (!email) res.send("Please enter your email");
+    if (!password) res.send("Please enter your password");
+    
     const user = await User.findOne({ email });
     if (user) {
         res.send("User already exists");
