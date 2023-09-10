@@ -1,6 +1,9 @@
 const express = require('express');
 const User = require('./users');
 const mongoose = require('mongoose');
+const { getHash, matchHash } = require('./utils/bcrypt');
+
+
 app = express();
 app.use(express.json())
 const DB = 'mongodb+srv://ranasonali987:osEgSlmRP0G5UbCE@cluster0.xgvlmk9.mongodb.net/sample?retryWrites=true&w=majority'
@@ -27,10 +30,13 @@ app.post('/signup', async (req, res) => {
             res.send("User already exists");
         } else {
             try {
+                
+                const hashedPassword = await getHash(password);
+
                 const newUser = await User.create({
                     name,
                     email,
-                    password
+                    password : hashedPassword,
                 });
                 res.send(newUser);
             } catch (err) {
@@ -46,7 +52,8 @@ app.post('/login', async (req, res) => {
     const { email, password } = req.body; 
     const user = await User.findOne({ email });
     try {
-        if (user && user.password === password) {
+        const isValid = await matchHash(user.password, password); 
+        if (user && isValid) {
          res.send(user);
         } else {
             res.json("Enter valid credentials");
