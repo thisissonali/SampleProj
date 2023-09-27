@@ -9,7 +9,7 @@ const  randomStringAsBase64Url  = require('./utils/uid')
 
 app = express();
 app.use(express.json())
-const DB = 'mongodb+srv://ranasonali987:osEgSlmRP0G5UbCE@cluster0.xgvlmk9.mongodb.net/sample?retryWrites=true&w=majority'
+const DB = process.env.MONGO_URI
 
 mongoose.connect(DB).then(() => {
     console.log(`connection successful`);
@@ -101,8 +101,8 @@ const loggerMiddleware = async (req, res, next) => {
 }
 //users route-------------------
 app.post('/users', loggerMiddleware ,  authMiddleware , async (req, res) => {
-    const user = await User.find({});
     try {
+        const user = await User.find({});
         res.send(user);
     } catch (error) {
         // res.status(401);
