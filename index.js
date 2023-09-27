@@ -4,6 +4,7 @@ const express = require('express');
 const User = require('./users');
 const mongoose = require('mongoose');
 const { getHash, matchHash } = require('./utils/bcrypt');
+const  randomStringAsBase64Url  = require('./utils/uid')
 // const jwt = require('jsonwebtoken');
 
 app = express();
@@ -34,15 +35,16 @@ app.post('/signup', async (req, res) => {
             try {
                 
                 const hashedPassword = await getHash(password);
-
+                const token = randomStringAsBase64Url();
                 const newUser = await User.create({
                     name,
                     email,
-                    password : hashedPassword,
+                    password: hashedPassword,
+                    token,
                 });
                 res.send(newUser);
             } catch (err) {
-                res.send("Failed to create user");
+                res.json(err);
         
             }
         
@@ -73,12 +75,14 @@ app.post('/login', async (req, res) => {
 
 })
 //authMiddleWare------------------------------------------
-const authMiddleware = async (req, res, next) =>{
-    const { email, password } = req.body;
+const authMiddleware = async (req, res, next) => {
+   
+    const { email, token } = req.body;
     try {
         const user = await User.findOne({ email });
-        const isValid = await matchHash(password, user.password);
-        if (user && isValid) {
+        
+        const newToken = user.token;
+        if (user && (token === newToken)) {
             next();
             console.log("Authorization successful");
             return
