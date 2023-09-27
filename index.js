@@ -1,8 +1,10 @@
+require('dotenv').config();
+
 const express = require('express');
 const User = require('./users');
 const mongoose = require('mongoose');
 const { getHash, matchHash } = require('./utils/bcrypt');
-
+// const jwt = require('jsonwebtoken');
 
 app = express();
 app.use(express.json())
@@ -47,22 +49,78 @@ app.post('/signup', async (req, res) => {
         }
     }
 })
-//login feature
+
+//login feature ------------------
+
 app.post('/login', async (req, res) => { 
     const { email, password } = req.body; 
+    
     const user = await User.findOne({ email });
     try {
-        const isValid = await matchHash(user.password, password); 
+        const isValid = await matchHash(password, user.password); 
         if (user && isValid) {
-         res.send(user);
+            
+            // const accessToken = jwt(user, process.env.ACCESS_TOKEN_SECRET);
+            // res.json({ accessToken: accessToken });     
+            res.send(user);  
         } else {
             res.json("Enter valid credentials");
         }
     } catch (error) {
-        res.status(401);
-        res.send(error);
+        // res.status(401);
+        res.json(error);
     }
 
 })
+//authMiddleWare------------------------------------------
+const authMiddleware = async (req, res, next) =>{
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        const isValid = await matchHash(password, user.password);
+        if (user && isValid) {
+            next();
+            console.log("Authorization successful");
+            return
+        } else {
+            res.json("User not authorized to see all users of the db");
+        }
+    } catch (err) {
+        res.json(err);
+    }
+   
+}
+//loggerMiddleware--------------------------------------------------------------
+const loggerMiddleware = async (req, res, next) => {
+    console.log("This is logger middleware");
+    next();
+}
+//users route-------------------
+app.post('/users', loggerMiddleware ,  authMiddleware , async (req, res) => {
+    const user = await User.find({});
+    try {
+        res.send(user);
+    } catch (error) {
+        // res.status(401);
+        res.json(error);
+    }
+    
+})
+//--------------------------
+// function authenticateToken(req, res , next) { 
+//     const authHeader = req.headers['authorization'];
+//     const token = authHeader && authHeader.split(' ')[1];
+
+//     if (token == null) {
+//       return res.send("Token is Null");
+//     }
+
+//     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+//         if (err) return res.sendStatus(403)
+        
+//         req.user = user;
+//         next();
+//     })
+// }
 app.listen(3000, console.log("listening"));
     
